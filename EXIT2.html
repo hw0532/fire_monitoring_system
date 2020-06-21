@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset=utf-8 />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <style type="text/css">
+  body {
+    margin: 20px;
+    font-family: sans-serif;
+    font-size: 20px;
+    color: #666;
+  }
+
+}
+
+  h2 {
+
+    padding-left: 0px;
+    font-weight: normal;
+    font-size: 24px;
+    color: #00AEFF;
+  }
+
+  label {
+    font-size: 14px;
+  }
+
+  .scopeContainer {
+    margin-bottom: 20px;
+  }
+
+  .scope {
+    float: left;
+    border: 1px solid #666;
+  }
+
+  .labelContainer {
+    float: left;
+    padding-left: 10px;
+  }
+
+  p.scopeLabel {
+    margin: 0;
+    padding-bottom: 10px;
+    font-size: 16px;
+  }
+
+  #selector {
+    margin-bottom: 10px;
+  }
+
+  .clear:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+  }
+
+  .clear {
+    display: inline-block;
+  }
+
+  * html .clear {
+    height: 1%;
+  }
+
+  .clear {
+    display: block;
+  }
+  </style>
+
+  <title>EXIT 2</title>
+
+  <!-- The following (socket.io.js) is only required when using the node_server -->
+  <script src="../../socket.io/socket.io.js"></script>
+  <script src="../../dist/Breakout.min.js"></script>
+  <script src="../libs/jquery.min.js"></script>
+  <script src="../libs/requestAnimFrame.js"></script>
+  <script type="text/javascript">
+  $(document).ready(function() {
+
+    // Declare these variables so you don't have
+    // to type the full namespace
+    var IOBoard = BO.IOBoard;
+    var IOBoardEvent = BO.IOBoardEvent;
+    var PinEvent = BO.PinEvent;
+    var SignalScope = JSUTILS.SignalScope;
+    var Pin = BO.Pin;
+
+    // Set to true to print debug messages to console
+    BO.enableDebugging = false;
+
+    // If you are not serving this file from the same computer
+    // that the Arduino board is connected to, replace
+    // window.location.hostname with the IP address or hostname
+    // of the computer that the Arduino board is connected to.
+    var host = window.location.hostname;
+    // if the file is opened locally, set the host to "localhost"
+    if (window.location.protocol.indexOf("file:") === 0) {
+      host = "localhost";
+    }
+    var arduino = new IOBoard(host, 8887);
+    var pot;
+    var $analogVal = $('#value');
+    var pot2;
+    var $analogVal2 = $('#value2');
+
+    // Scope details
+    var scope1 = new SignalScope("scope1", 200, 100, 0, 1);
+    var scope2 = new SignalScope("scope2", 200, 100, 0, 2);
+
+    // Listen for the IOBoard READY event which indicates the IOBoard
+    // is ready to send and receive data
+    arduino.addEventListener(IOBoardEvent.READY, onReady);
+
+    function onReady(event) {
+      // Remove the event listener because it is no longer needed
+      arduino.removeEventListener(IOBoardEvent.READY, onReady);
+
+      // Need to enable an analog pin in order to read it
+      arduino.enableAnalogPin(0);
+      pot = arduino.getAnalogPin(0);
+      arduino.enableAnalogPin(1);
+      pot2 = arduino.getAnalogPin(1);
+
+      // Add markers to scope
+      scope1.addMarker(0.5, '#00FF00')
+      scope2.addMarker(0.5, '#00FF00')
+
+      // Update the graph
+      animate();
+      arlert();
+
+    }
+
+    function animate() {
+      scope1.update(pot.value);
+      $analogVal.text('fire = ' + pot.value.toFixed(3));
+      scope2.update(pot2.value);
+      $analogVal2.text('temparature = ' + pot2.value.toFixed(3));
+      requestAnimFrame(animate);
+    }
+
+    function alert() {
+          if(pot.value<0.4){
+            document.write("warning");
+          }
+          else{
+            document.write("safe");
+          }
+          request(alert);
+        }
+
+  });
+  </script>
+
+</head>
+
+<body>
+  <h2>출구2 온도 화재 가스 </h2>
+  <div id="containers" style="width:400px;">
+    <p id="value" class="scopeLabel">Value = </p>
+    <div class="scopeContainer clear">
+      <canvas id="scope1" class="scope" width="200" height="100"></canvas>
+  </div>
+  <div id="containers" style="width:400px;">
+    <p id="value2" class="scopeLabel">Value = </p>
+    <div class="scopeContainer clear">
+      <canvas id="scope2" class="scope" width="200" height="100"></canvas>
+
+  </div>
+
+</body>
+
+</html>
